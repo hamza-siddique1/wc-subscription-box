@@ -13,7 +13,25 @@ add_filter('woocommerce_product_data_tabs', function ($tabs) {
 
 add_action('woocommerce_product_data_panels', function () {
 
-    global $product;
+
+    global $post;
+
+    $product = $post ? wc_get_product($post->ID) : null;
+
+    if ($product && $product->is_type('subscription_box')) {
+        $billing_period = $product->get_billing_period();
+        $billing_interval = $product->get_billing_interval();
+        $subscription_length = $product->get_subscription_length();
+        $trial_period = $product->get_trial_period();
+        $max_subscribers = $product->get_max_subscribers();
+    }
+    else{
+        $billing_period = 'monthly';
+        $billing_interval = 1;
+        $subscription_length = '3_months';
+        $trial_period = 7;
+        $max_subscribers = 10;
+    }
 
     ?>
     <div id="subscription_box_options_data" class="panel woocommerce_options_panel">
@@ -28,14 +46,14 @@ add_action('woocommerce_product_data_panels', function () {
                 'monthly' => 'Monthly',
                 'yearly' => 'Yearly',
             ],
-            'value' => $product->get_billing_period()
+            'value' => $billing_period
         ]);
 
         woocommerce_wp_text_input([
             'id' => '_billing_interval',
             'label' => 'Billing Interval',
             'type' => 'number',
-            'value' => 5
+            'value' => $billing_interval
         ]);
 
         woocommerce_wp_select([
@@ -47,21 +65,21 @@ add_action('woocommerce_product_data_panels', function () {
                 '6_months' => '6 Months',
                 'ongoing' => 'Ongoing',
             ],
-            'value' => '1_month'
+            'value' => $subscription_length
         ]);
 
         woocommerce_wp_text_input([
             'id' => '_trial_period',
             'label' => 'Trial Period (days)',
             'type' => 'number',
-            'value' => 7
+            'value' => $trial_period
         ]);
 
         woocommerce_wp_text_input([
             'id' => '_max_subscribers',
             'label' => 'Max Subscribers',
             'type' => 'number',
-            'value' => 10
+            'value' => $max_subscribers
         ]);
 
         ?>
@@ -69,11 +87,9 @@ add_action('woocommerce_product_data_panels', function () {
     <?php
 });
 
-add_action('woocommerce_process_product_meta', function ($post_id) {
+add_action('woocommerce_admin_process_product_object', function ($product) {
 
-    $product = wc_get_product($post_id);
-
-    if ($product->get_type() !== 'subscription_box') return;
+    if (!$product->is_type('subscription_box')) return;
 
     if (isset($_POST['_billing_period'])) {
         $product->set_billing_period($_POST['_billing_period']);

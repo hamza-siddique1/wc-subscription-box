@@ -3,9 +3,9 @@
 class WC_Product_Subscription_Box extends WC_Product {
 
     protected $extra_data = [
-        'billing_period'      => '',
+        'billing_period'      => 'monthly',
         'billing_interval'    => 1,
-        'subscription_length' => '',
+        'subscription_length' => '3_months',
         'trial_period'        => 7,
         'max_subscribers'     => 10,
     ];
